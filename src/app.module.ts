@@ -4,10 +4,13 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi'
 import { UsersModule } from './users/users.module';
-import { CommonModule } from './common/common.module';
 import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
+import { AuthModule } from './auth/auth.module';
+import { Verification } from './users/entities/verification.entity';
+import { MailModule } from './mail/mail.module';
+import { string } from 'joi';
 
 // console.log(Joi)
 
@@ -25,6 +28,9 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
         DB_PASSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
         SECRET_KEY: Joi.string().required(),
+        MAILGUN_API_KEY: Joi.string().required(),
+        MAILGUN_DOMAIN_NAME: Joi.string().required(),
+        MAILGUN_FROM_EMAIL: Joi.string().required(),
       })
     }),
     TypeOrmModule.forRoot({
@@ -36,26 +42,31 @@ import { JwtMiddleware } from './jwt/jwt.middleware';
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: process.env.NODE_ENV !== 'prod',
-      entities: [User]
+      entities: [User, Verification]
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
-      context: ({req}) => ({user: req['user']})
+      context: ({ req }) => ({ user: req['user'] })
     }),
-    JwtModule.forRoot({privateKey: process.env.SECRET_KEY}),
+    JwtModule.forRoot({ privateKey: process.env.SECRET_KEY }),
+    MailModule.forRoot({
+      apiKey: process.env.MAILGUN_API_KEY,
+      domain: process.env.MAILGUN_DOMAIN_NAME,
+      fromEmail: process.env.MAILGUN_FROM_EMAIL
+    }),
     UsersModule,
-    CommonModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule { 
-  configure(consumer:MiddlewareConsumer){
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
     consumer
-    .apply(JwtMiddleware)
-    .forRoutes({
-      path:'/graphql',
-      method: RequestMethod.ALL,
-    })
+      .apply(JwtMiddleware)
+      .forRoutes({
+        path: '/graphql',
+        method: RequestMethod.POST,
+      })
   }
 }
