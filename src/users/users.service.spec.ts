@@ -5,6 +5,7 @@ import { UsersService } from "./users.service"
 import { Verification } from './entities/verification.entity';
 import { JwtService } from 'src/jwt/jwt.service';
 import { MailService } from 'src/mail/mail.service';
+import { Repository } from 'typeorm';
 
 
 const mockRespository = {
@@ -23,10 +24,14 @@ const mockEmailService = {
     sendverification: jest.fn(),
 }
 
+type MockRepository<T = any> = Partial<Record<keyof Repository<User>, jest.Mock>>
+
+
 describe("UserService", () => {
 
     let service:UsersService
-
+    let usersRepository:MockRepository
+    
 beforeAll(async() => {
     const module = await Test.createTestingModule({
         providers: [
@@ -46,6 +51,11 @@ beforeAll(async() => {
     ],
     }).compile()
     service = module.get<UsersService>(UsersService);
+    usersRepository = module.get(getRepositoryToken(User));
+})
+
+describe('createAccount', () => {
+    it('should fail if user exists', () => {})
 })
     
     it('be defined', () => {
