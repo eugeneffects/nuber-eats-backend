@@ -8,6 +8,7 @@ import { JwtService } from "src/jwt/jwt.service";
 import { UserProfileOutput } from "./dtos/user-profile.dto";
 import { EditProfileInput } from "./dtos/edit-profile.dto";
 import { Verification } from "./entities/verification.entity";
+import { MailService } from "src/mail/mail.service";
 
 @Injectable()
 export class UsersService {
@@ -15,7 +16,8 @@ export class UsersService {
         @InjectRepository(User) private readonly users: Repository<User>,
         @InjectRepository(Verification)
         private readonly verifications: Repository<Verification>,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly MailService: MailService,
     ) { }
 
 
@@ -26,9 +28,10 @@ export class UsersService {
                 return [false, "There is a user with that email already"];
             }
             const user = await this.users.save(this.users.create({ email, password, role }));
-            await this.verifications.save(this.verifications.create({
+            const verification = await this.verifications.save(this.verifications.create({
                 user
             }))
+            this.MailService.sendVerificationEmail(user.email, verification.code)
             return [true]
         } catch (e) {
             return [false, "Couldn't create account"]
@@ -70,9 +73,11 @@ export class UsersService {
     async editProfile(userId: number, { email, password }: EditProfileInput) {
         const user = await this.users.findOne(userId);
         if (email) {
+            console.log("접속")
             user.email = email
             user.verified = false
-            await this.verifications.save(this.verifications.create({ user }))
+            const verification = await this.verifications.save(this.verifications.create({ user }))
+            this.MailService.sendVerificationEmail(user.email, verification.code)
         }
         if (password) {
             user.password = password
