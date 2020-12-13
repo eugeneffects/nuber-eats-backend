@@ -24,6 +24,7 @@ export class UsersService {
     async createAccount({ email, password, role }: CreateAccountInput): Promise<[boolean, string?]> {
         try {
             const exists = await this.users.findOne({ email })
+            console.log(exists)
             if (exists) {
                 return [false, "There is a user with that email already"];
             }

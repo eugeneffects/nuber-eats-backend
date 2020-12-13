@@ -29,40 +29,53 @@ type MockRepository<T = any> = Partial<Record<keyof Repository<User>, jest.Mock>
 
 describe("UserService", () => {
 
-    let service:UsersService
-    let usersRepository:MockRepository
-    
-beforeAll(async() => {
-    const module = await Test.createTestingModule({
-        providers: [
-        UsersService,
-        {
-            provide: getRepositoryToken(User), useValue:mockRespository
-        },
-        {
-            provide: getRepositoryToken(Verification), useValue:mockRespository
-        },
-        {
-            provide: JwtService, useValue:mockJwtService
-        },
-        {
-            provide: MailService, useValue:mockEmailService
-        },
-    ],
-    }).compile()
-    service = module.get<UsersService>(UsersService);
-    usersRepository = module.get(getRepositoryToken(User));
-})
+    let service: UsersService
+    let usersRepository: MockRepository
 
-describe('createAccount', () => {
-    it('should fail if user exists', () => {})
-})
-    
+    beforeAll(async () => {
+        const module = await Test.createTestingModule({
+            providers: [
+                UsersService,
+                {
+                    provide: getRepositoryToken(User), useValue: mockRespository
+                },
+                {
+                    provide: getRepositoryToken(Verification), useValue: mockRespository
+                },
+                {
+                    provide: JwtService, useValue: mockJwtService
+                },
+                {
+                    provide: MailService, useValue: mockEmailService
+                },
+            ],
+        }).compile()
+        service = module.get<UsersService>(UsersService);
+        usersRepository = module.get(getRepositoryToken(User));
+    })
+
+    describe('createAccount', () => {
+        it('should fail if user exists', async () => {
+            usersRepository.findOne.mockResolvedValue({
+                id: 1,
+                email: 'lalalal'
+            })
+            const result = await service.createAccount({
+                email: 'lalal',
+                password: '1',
+                role: 0,
+            })
+            expect(result).toMatchObject({
+                ok: false,
+                error: 'there is a user with that email already.'
+            })
+        })
+    })
+
     it('be defined', () => {
         expect(service).toBeDefined()
     })
 
-    it.todo('createAccount')
     it.todo('login')
     it.todo('findById')
     it.todo('editProfile')

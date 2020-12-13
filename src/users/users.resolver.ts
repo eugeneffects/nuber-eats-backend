@@ -27,10 +27,6 @@ export class UsersResolver {
             }
         } catch (error) {
             return {
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
                 error,
                 ok: false
             }
@@ -60,20 +56,12 @@ export class UsersResolver {
     ): Promise<UserProfileOutput> {
         return this.usersService.findById(userProfileInput.userId);
     }
-<<<<<<< Updated upstream
-
-    @UseGuards(AuthGuard)
-    @Mutation(returns => EditProfileOutput)
-    async editProfile(@AuthUser() authUser: User, @Args('input') editProfileInput: EditProfileInput): Promise<EditProfileOutput> {
-        try {
-=======
     @UseGuards(AuthGuard)
 
     @Mutation(returns => EditProfileOutput)
     async editProfile(@AuthUser() authUser: User, @Args('input') editProfileInput: EditProfileInput): Promise<EditProfileOutput> {
         try {
             console.log("프로파일 수정")
->>>>>>> Stashed changes
             await this.usersService.editProfile(authUser.id, editProfileInput)
             return { ok: true }
         } catch (error) {
